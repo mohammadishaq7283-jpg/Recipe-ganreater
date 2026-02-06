@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies (Vite ki libraries)
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.sw?
+
+# --- SECURITY & ENV VARIABLES ---
+# Yahan aapki OpenRouter API Key hoti hai.
+# Isay UNCOMMENT mat karna. Ye file GitHub par nahi jani chahiye.
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python (Agar backend mix hai)
+__pycache__/
+*.pyc
+venv/
+.venv/
