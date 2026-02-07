@@ -1,58 +1,80 @@
-from openai import OpenAI
-import os
-from prompt_templates import create_master_prompt
+# recipe_engine.py
 
-# Config se settings lena (Agar config file hai)
-# Agar config file nahi hai to hum direct ENV se le lenge safe side ke liye
+import os
+from openai import OpenAI
+
+# --- PROMPT TEMPLATE ---
 try:
-    from config import BASE_URL, MODEL_NAME
+    from prompt_templates import create_master_prompt
 except ImportError:
-    BASE_URL = "https://openrouter.ai/api/v1"
-    MODEL_NAME = "google/gemini-2.0-flash-lite-preview-02-05:free"
+    # Backup agar file missing ho
+    def create_master_prompt(language, veggies_list, style, recipe_type):
+        return f"Generate a {style} recipe using {', '.join(veggies_list)} in {language}."
+
+
+# --- OPENROUTER SETTINGS ---
+BASE_URL = "https://openrouter.ai/api/v1"
+
+# Free Model
+MODEL_NAME = "google/gemini-2.0-flash-lite-preview-02-05:free"
+
 
 def generate_recipe(language, veggies_list, style, recipe_type):
     """
-    Yeh function OpenRouter AI ko call karta hai.
+    OpenRouter AI se recipe generate karta hai
     """
 
-    # 1. API Key Uthana (Vercel Environment se)
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    # 1. API KEY CHECK
+    api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("API_KEY")
 
     if not api_key:
-        return "Error: API Key is missing in Vercel Settings!"
+        print("❌ API KEY NOT FOUND")
+        return "Error: OPENROUTER_API_KEY missing in Vercel Environment Variables."
 
-    # 2. Prompt create karna
-    # Note: Make sure prompt_templates.py file bhi maujood ho!
+    print(f"✅ API Key OK | Model: {MODEL_NAME}")
+
+    # 2. PROMPT BANANA
     try:
-        system_prompt = create_master_prompt(language, veggies_list, style, recipe_type)
-    except NameError:
-        return "Error: 'prompt_templates.py' file is missing or broken."
-
-    print(f"Connecting to AI... Model: {MODEL_NAME}")
-
-    try:
-        # 3. Client Setup
-        client = OpenAI(
-            base_url=BASE_URL,
-            api_key=api_key,
+        prompt = create_master_prompt(
+            language,
+            veggies_list,
+            style,
+            recipe_type
         )
+    except Exception as e:
+        return f"Prompt Error: {str(e)}"
 
-        # 4. API Call
+    # 3. OPENROUTER CLIENT
+    client = OpenAI(
+        api_key=api_key,
+        base_url=BASE_URL
+    )
+
+    # 4. AI CALL
+    try:
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a professional chef. Follow strict formatting rules."},
-                {"role": "user", "content": system_prompt}
+                {
+                    "role": "system",
+                    "content": "You are a professional chef AI. Follow clean formatting."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
             ],
             extra_headers={
                 "HTTP-Referer": "https://vercel.app",
-                "X-Title": "Pro AI Chef App",
-            },
+                "X-Title": "Pro AI Chef"
+            }
         )
 
-        # 5. Result nikalna
-        recipe_text = response.choices[0].message.content
-        return recipe_text
+        if response and response.choices:
+            return response.choices[0].message.content.strip()
+
+        return "Error: Empty response from AI."
 
     except Exception as e:
+        print("❌ AI ERROR:", e)
         return f"AI Error: {str(e)}"
