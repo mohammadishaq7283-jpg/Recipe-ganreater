@@ -1,58 +1,69 @@
-from openai import OpenAI
 import os
-from prompt_templates import create_master_prompt
+from openai import OpenAI
 
-# Config se settings lena (Agar config file hai)
-# Agar config file nahi hai to hum direct ENV se le lenge safe side ke liye
+# --- SETTINGS ---
+BASE_URL = "https://openrouter.ai/api/v1"
+
+# Aapka pasandida Model
+MODEL_NAME = "stepfun/step-3.5-flash:free"
+
+# --- PROMPT LOGIC (Safe Import) ---
 try:
-    from config import BASE_URL, MODEL_NAME
+    from prompt_templates import create_master_prompt
 except ImportError:
-    BASE_URL = "https://openrouter.ai/api/v1"
-    MODEL_NAME = "google/gemini-2.0-flash-lite-preview-02-05:free"
+    # Agar prompt file missing ho to crash na ho, basic prompt banaye
+    def create_master_prompt(lang, veg, style, type_):
+        return f"Create a {style} recipe for {', '.join(veg)} in {lang}."
 
 def generate_recipe(language, veggies_list, style, recipe_type):
     """
-    Yeh function OpenRouter AI ko call karta hai.
+    Recipe generate karne wala main function.
     """
     
-    # 1. API Key Uthana (Vercel Environment se)
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    # 1. API Key Check (Vercel Env se)
+    api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("API_KEY")
     
     if not api_key:
-        return "Error: API Key is missing in Vercel Settings!"
+        return "Error: API Key is missing in Vercel Settings (OPENROUTER_API_KEY)."
 
-    # 2. Prompt create karna
-    # Note: Make sure prompt_templates.py file bhi maujood ho!
+    # 2. Prompt Banana
     try:
         system_prompt = create_master_prompt(language, veggies_list, style, recipe_type)
-    except NameError:
-        return "Error: 'prompt_templates.py' file is missing or broken."
+    except Exception as e:
+        return f"Error creating prompt: {str(e)}"
 
     print(f"Connecting to AI... Model: {MODEL_NAME}")
-    
+
+    # 3. AI ko Call karna
     try:
-        # 3. Client Setup
         client = OpenAI(
             base_url=BASE_URL,
             api_key=api_key,
         )
 
-        # 4. API Call
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a professional chef. Follow strict formatting rules."},
-                {"role": "user", "content": system_prompt}
+                {
+                    "role": "system", 
+                    "content": "You are a professional chef. Output strictly in the requested format."
+                },
+                {
+                    "role": "user", 
+                    "content": system_prompt
+                }
             ],
             extra_headers={
-                "HTTP-Referer": "https://vercel.app",
-                "X-Title": "Pro AI Chef App",
+                "HTTP-Referer": "https://vercel.app", 
+                "X-Title": "Pro AI Chef",
             },
         )
 
-        # 5. Result nikalna
-        recipe_text = response.choices[0].message.content
-        return recipe_text
+        # 4. Jawab Return karna
+        if response and response.choices:
+            return response.choices[0].message.content
+        else:
+            return "Error: AI sent an empty response."
 
     except Exception as e:
-        return f"AI Error: {str(e)}"
+        return f"AI Connection Error: {str(e)}"
