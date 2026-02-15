@@ -49,7 +49,7 @@ HTML_CODE = """
         .btn-new { background: #ddd; color: #333; margin-bottom: 10px; width: 100%; }
 
         /* LOADING */
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -73,13 +73,13 @@ HTML_CODE = """
 
             <label><b>2. Add Ingredients</b></label>
             
-            <!-- Hidden Camera Input -->
-            <input type="file" id="camera-file" accept="image/*" capture="environment" style="display:none" onchange="handleImage()">
+            <!-- Gallery/Camera Input (Removed 'capture' to allow Gallery) -->
+            <input type="file" id="camera-file" accept="image/*" style="display:none" onchange="handleImage()">
             
-            <!-- Visible Camera Box -->
+            <!-- Visible Box -->
             <div class="camera-box" onclick="document.getElementById('camera-file').click()">
                 <i class="fas fa-camera" style="font-size: 30px; color: #ff6b6b;"></i>
-                <span class="camera-text">Tap to Scan Ingredients</span>
+                <span class="camera-text">Pick from Gallery / Take Photo</span>
             </div>
 
             <input type="text" id="user-input" placeholder="Or type here (e.g. Chicken, Aloo)...">
@@ -117,11 +117,11 @@ HTML_CODE = """
     let currentRecipe = "";
 
     function handleImage() {
-        // Jab user photo lega to ye chalega
         const file = document.getElementById('camera-file').files[0];
         if(file) {
-            document.getElementById('user-input').value = "Scanned: Ingredients from Camera";
-            alert("Photo Captured! Now click 'Generate Recipe'.");
+            // Hum mock kar rahe hain ke image scan hui
+            document.getElementById('user-input').value = "Scanned Item: " + file.name;
+            alert("Image Selected! Click 'Generate Recipe'.");
         }
     }
 
@@ -154,12 +154,13 @@ HTML_CODE = """
                 alert("Error: " + data.error);
             } else {
                 currentRecipe = data.recipe;
-                // Bold text formatting
+                // Bold formatting
                 document.getElementById('recipe-text').innerHTML = data.recipe.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                 
-                // Show Result Screen
+                // Show Result
                 document.getElementById('screen-home').style.display = 'none';
                 document.getElementById('screen-result').style.display = 'block';
+                window.scrollTo(0, 0);
             }
 
         } catch(e) {
