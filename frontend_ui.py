@@ -8,270 +8,215 @@ HTML_CODE = """
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-color: #333333;
-            --sidebar-bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --input-bg: #f0f2f5;
-            --border-color: #e0e0e0;
-            --primary-color: #ff6b6b; /* Chef Red/Orange */
-            --chat-user: #ff6b6b;
-            --chat-ai: #f1f3f4;
-            --chat-ai-text: #333;
+            --primary: #ff6b6b;
+            --bg: #fdfbf7;
+            --card: #ffffff;
+            --text: #333;
+            --whatsapp: #25D366;
+            --btn-text: #fff;
         }
 
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --sidebar-bg: #1a1a1a;
-            --card-bg: #1e1e1e;
-            --input-bg: #2d2d2d;
-            --border-color: #444;
-            --primary-color: #ff8787;
-            --chat-user: #ff8787;
-            --chat-ai: #333333;
-            --chat-ai-text: #fff;
-        }
-
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; width: 100%; height: 100vh; overflow: hidden; }
-        
-        .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
 
         /* HEADER */
-        .header {
-            flex-shrink: 0; height: 60px; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: var(--bg-color); z-index: 10;
-        }
-        .title { font-weight: bold; font-size: 20px; color: var(--primary-color); display:flex; align-items:center; gap:5px;}
-        .menu-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-color); }
+        .header { padding: 15px; background: var(--card); box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 
-        /* CONTENT AREA */
-        .content-area { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .screen { display: none; width: 100%; height: 100%; overflow-y: auto; padding: 20px; }
-        .screen.active { display: block; }
+        /* SCREENS */
+        .screen { display: none; flex: 1; padding: 20px; flex-direction: column; overflow-y: auto; }
+        .screen.active { display: flex; }
 
-        /* DASHBOARD SPECIFIC */
-        #screen-dashboard {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%; padding-bottom: 80px;
+        /* HOME SCREEN */
+        .hero-section { text-align: center; margin-top: 20px; margin-bottom: 20px; }
+        .hero-icon { font-size: 50px; color: var(--primary); margin-bottom: 10px; }
+        .input-card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        label { font-weight: bold; display: block; margin-bottom: 8px; font-size: 14px; color: #555; }
+        select, input { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; background: #fafafa; }
+
+        /* CAMERA BUTTON AREA */
+        .camera-box {
+            border: 2px dashed #ffb8b8; border-radius: 15px; padding: 20px;
+            text-align: center; margin-bottom: 20px; cursor: pointer;
+            background: #fff5f5; transition: 0.2s;
         }
+        .camera-box:active { background: #ffe3e3; }
+        .camera-text { display: block; font-weight: bold; color: var(--primary); margin-bottom: 5px; font-size: 14px; }
+        .camera-sub { font-size: 12px; color: #888; }
         
-        .lang-select-container { margin-bottom: 20px; width: 100%; max-width: 300px; }
-        .lang-select { 
-            width: 100%; padding: 15px; font-size: 16px; border-radius: 12px; 
-            border: 2px solid var(--primary-color); background: var(--card-bg); color: var(--text-color); font-weight: bold;
+        .btn-generate { 
+            width: 100%; padding: 16px; background: var(--primary); color: white; 
+            border: none; border-radius: 12px; font-size: 18px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .btn-generate:active { transform: scale(0.98); }
 
-        .hero-image { font-size: 60px; margin-bottom: 20px; color: var(--primary-color); }
-        .instruction-text { font-size: 18px; line-height: 1.5; margin-bottom: 30px; max-width: 80%; }
-
-        /* CHAT SCREEN */
-        #screen-chat { display: none; flex-direction: column; padding: 0; height: 100%; }
-        #screen-chat.active { display: flex; }
-        .chat-header-bar { flex-shrink: 0; padding: 10px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
-        #chat-history { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 80px; }
-
-        /* INPUT BAR (FIXED BOTTOM) */
-        .chat-input-area {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
-            background: var(--bg-color); border-top: 1px solid var(--border-color);
-            display: flex; align-items: center; gap: 10px; padding: 0 10px; z-index: 100;
-        }
-        .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; background: var(--input-bg); border-radius: 30px; border: 1px solid var(--border-color); padding: 0 15px; }
-        .chat-input-area input { width: 100%; padding: 12px; padding-right: 40px; border: none; background: transparent; color: var(--text-color); outline: none; font-size: 16px; }
+        /* RESULT SCREEN */
+        .recipe-container { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 80px; }
+        .recipe-content { white-space: pre-wrap; font-size: 16px; line-height: 1.6; color: #444; }
         
-        .camera-btn { position: absolute; right: 10px; background: none; border: none; color: var(--primary-color); font-size: 22px; cursor: pointer; padding: 5px; }
-        .send-btn { width: 45px; height: 45px; background: var(--primary-color); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-
-        /* MESSAGES */
-        .message { padding: 12px 18px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 15px; }
-        .user-msg { align-self: flex-end; background: var(--chat-user); color: white; border-bottom-right-radius: 4px; }
-        .ai-msg { align-self: flex-start; background: var(--chat-ai); color: var(--chat-ai-text); border-bottom-left-radius: 4px; }
+        /* BOTTOM ACTION BAR */
+        .action-bar { 
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--card); padding: 15px; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex; gap: 10px; z-index: 100;
+        }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: white; }
+        .btn-copy { background: #333; }
+        .btn-whatsapp { background: var(--whatsapp); }
+        .btn-back { background: transparent; color: #666; border: 1px solid #ddd; position: absolute; top: 15px; left: 15px; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; }
 
         /* LOADING */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 2000; color: white; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 200; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     </style>
 </head>
 <body>
 
-<div class="app-container">
     <!-- HEADER -->
     <div class="header">
-        <div class="title"><i class="fas fa-utensils"></i> Pro AI Chef</div>
-        <button class="menu-btn" onclick="toggleTheme()"><i class="fas fa-adjust"></i></button>
+        <div class="logo"><i class="fas fa-hat-chef"></i> Pro AI Chef</div>
     </div>
 
-    <div class="content-area">
-        
-        <!-- DASHBOARD (MAIN SCREEN) -->
-        <div id="screen-dashboard" class="screen active">
-            
-            <div class="hero-image"><i class="fas fa-carrot"></i></div>
-            
-            <!-- 1. LANGUAGE SELECTION -->
-            <div class="lang-select-container">
-                <select id="main-lang-select" class="lang-select" onchange="updateLanguage()">
-                    <option value="English">English</option>
-                    <option value="Urdu">Urdu (اردو)</option>
-                    <option value="Hindi">Hindi (हिंदी)</option>
-                    <option value="Roman Urdu">Roman Urdu</option>
-                </select>
-            </div>
-
-            <!-- 2. DYNAMIC TEXT -->
-            <div id="instruction-text" class="instruction-text">
-                Use the camera to scan ingredients or type a dish name to get a recipe!
-            </div>
-
+    <!-- PAGE 1: INPUT HOME -->
+    <div id="screen-home" class="screen active">
+        <div class="hero-section">
+            <div class="hero-icon">🍳</div>
+            <h3>What are we cooking?</h3>
         </div>
 
-        <!-- CHAT SCREEN -->
-        <div id="screen-chat" class="screen">
-            <div class="chat-header-bar">
-                <button onclick="showDashboard()" style="background:none; border:none; font-size:18px; color: var(--text-color);"><i class="fas fa-arrow-left"></i> Back</button>
-                <b id="chat-title">Recipe Chat</b>
+        <div class="input-card">
+            <!-- Language -->
+            <label>Select Language / Zaban</label>
+            <select id="language">
+                <option value="English">English</option>
+                <option value="Urdu">Urdu (اردو)</option>
+                <option value="Roman Urdu">Roman Urdu</option>
+                <option value="Hindi">Hindi (हिंदी)</option>
+            </select>
+
+            <!-- Camera Button -->
+            <input type="file" id="camera-file" accept="image/*" capture="environment" style="display:none" onchange="handleImage()">
+            <div class="camera-box" onclick="triggerCamera()">
+                <i class="fas fa-camera" style="font-size: 24px; color: #ff6b6b; margin-bottom: 8px;"></i>
+                <span class="camera-text">Scan Ingredients or Dish</span>
+                <span class="camera-sub">(Tasweer lein recipe ke liye)</span>
             </div>
-            <div id="chat-history"></div>
+
+            <!-- Text Input -->
+            <label>Or Type Dish Name / Ingredients</label>
+            <input type="text" id="user-input" placeholder="e.g., Chicken, Aloo, Biryani...">
+
+            <!-- Generate Button -->
+            <button class="btn-generate" onclick="generateRecipe()">
+                <span>Generate Recipe</span> <i class="fas fa-magic"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- PAGE 2: RESULT SCREEN -->
+    <div id="screen-result" class="screen">
+        <div class="recipe-container">
+            <h2 style="margin-top:0; color:#ff6b6b;">🍽️ Your Recipe</h2>
+            <div id="recipe-text" class="recipe-content"></div>
         </div>
 
+        <!-- Sticky Bottom Bar -->
+        <div class="action-bar">
+            <button class="btn-action btn-copy" onclick="copyRecipe()">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+            <button class="btn-action btn-whatsapp" onclick="shareWhatsapp()">
+                <i class="fab fa-whatsapp"></i> Share
+            </button>
+            <button class="btn-action" style="background: #eee; color:#333;" onclick="goBack()">
+                <i class="fas fa-redo"></i> New
+            </button>
+        </div>
     </div>
-</div>
 
-<!-- FIXED BOTTOM INPUT BAR -->
-<div class="chat-input-area">
-    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelect()">
-    
-    <div class="input-wrapper">
-        <input type="text" id="user-input" placeholder="Type ingredient or dish name..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <!-- CAMERA ICON INSIDE BAR -->
-        <button class="camera-btn" onclick="triggerCamera()"><i class="fas fa-camera"></i></button>
+    <!-- LOADING -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h3 style="color:#ff6b6b;">Chef is Cooking...</h3>
+        <p>Writing detailed recipe for you.</p>
     </div>
-    
-    <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-</div>
-
-<div id="loading-overlay"><div class="spinner"></div><div id="loading-text">Cooking...</div></div>
 
 <script>
-    // --- TRANSLATIONS ---
-    const translations = {
-        "English": {
-            text: "Use the camera to scan ingredients or type a dish name to get a recipe!",
-            placeholder: "Type ingredient or dish name..."
-        },
-        "Urdu": {
-            text: "Apne ingredients ki tasweer lein ya dish ka naam likh kar recipe hasil karein!",
-            placeholder: "Dish ya sabzi ka naam likhein..."
-        },
-        "Hindi": {
-            text: "Samagri ki photo lein ya dish ka naam likhkar recipe payein!",
-            placeholder: "Dish ka naam likhein..."
-        },
-        "Roman Urdu": {
-            text: "Camera se tasweer lein ya dish ka naam likhein recipe ke liye!",
-            placeholder: "Yahan likhein..."
-        }
-    };
-
-    let currentLang = "English";
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const theme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', theme);
-        updateLanguage();
-    });
-
-    // --- LOGIC ---
-    function updateLanguage() {
-        const select = document.getElementById('main-lang-select');
-        currentLang = select.value;
-        const data = translations[currentLang] || translations["English"];
-        
-        // Update Text
-        document.getElementById('instruction-text').innerText = data.text;
-        document.getElementById('user-input').placeholder = data.placeholder;
-    }
-
-    function showDashboard() {
-        document.getElementById('screen-chat').classList.remove('active');
-        document.getElementById('screen-dashboard').classList.add('active');
-    }
+    let currentRecipeText = "";
 
     function triggerCamera() {
-        document.getElementById('camera-input').click();
+        document.getElementById('camera-file').click();
     }
 
-    function handleImageSelect() {
-        // Mock Image Analysis
-        const fileInput = document.getElementById('camera-input');
-        if (fileInput.files && fileInput.files[0]) {
-            const fileName = fileInput.files[0].name;
-            // Fake analysis message
-            const input = document.getElementById('user-input');
-            input.value = "Analyzed Image: Mixed Vegetables"; // Auto-fill for demo
-            sendMessage();
+    function handleImage() {
+        const file = document.getElementById('camera-file').files[0];
+        if(file) {
+            // Mock functionality (Asli image analysis paid hota hai)
+            // Hum user ko dikhayenge ke image scan ho gayi
+            document.getElementById('user-input').value = "Scanned: Delicious Dish"; 
+            alert("Photo Captured! Click 'Generate Recipe' to see magic.");
         }
     }
 
-    async function sendMessage() {
-        const input = document.getElementById('user-input');
-        const text = input.value.trim();
-        if(!text) return;
+    async function generateRecipe() {
+        const input = document.getElementById('user-input').value;
+        const lang = document.getElementById('language').value;
 
-        // Switch to Chat Screen if not active
-        document.getElementById('screen-dashboard').classList.remove('active');
-        document.getElementById('screen-chat').classList.add('active');
+        if(!input) return alert("Please type a name or take a photo!");
 
-        addMessage(text, 'user-msg');
-        input.value = '';
-        
-        const loadingId = addMessage("👨‍🍳 Chef is thinking...", 'ai-msg');
-        
-        // Timeout Safety
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        // Loading Start
+        document.getElementById('loading-overlay').style.display = 'flex';
 
         try {
-            const res = await fetch('/api/chat', {
+            const res = await fetch('/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    message: text, 
-                    subject: "Cooking", // Force subject
-                    language: currentLang 
-                }),
-                signal: controller.signal
+                body: JSON.stringify({
+                    user_input: input,
+                    language: lang,
+                    style: "Restaurant Style"
+                })
             });
-            clearTimeout(timeoutId);
+            
             const data = await res.json();
-            document.getElementById(loadingId).innerHTML = formatRecipe(data.reply);
+            currentRecipeText = data.recipe; 
+            
+            // Format Bold Text (**text** -> <b>text</b>)
+            const formatted = data.recipe.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            document.getElementById('recipe-text').innerHTML = formatted;
+
+            // Change Page
+            document.getElementById('screen-home').classList.remove('active');
+            document.getElementById('screen-result').classList.add('active');
+            window.scrollTo(0, 0);
+
         } catch(e) {
-            document.getElementById(loadingId).innerText = "⚠️ Network Error. Try again.";
+            alert("Error: " + e.message);
+        } finally {
+            document.getElementById('loading-overlay').style.display = 'none';
         }
     }
 
-    function addMessage(text, cls) {
-        const d = document.createElement('div');
-        d.className = 'message ' + cls;
-        d.innerHTML = text;
-        const h = document.getElementById('chat-history');
-        h.appendChild(d);
-        h.scrollTop = h.scrollHeight;
-        return d.id;
+    function goBack() {
+        document.getElementById('screen-result').classList.remove('active');
+        document.getElementById('screen-home').classList.add('active');
+        document.getElementById('user-input').value = '';
     }
 
-    function formatRecipe(text) {
-        // Simple formatter to make bold text look good
-        return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+    function copyRecipe() {
+        navigator.clipboard.writeText(currentRecipeText).then(() => {
+            alert("Recipe Copied!");
+        });
     }
 
-    function toggleTheme() {
-        const body = document.body;
-        const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
+    function shareWhatsapp() {
+        const text = encodeURIComponent("*Pro AI Chef Recipe:*\n\n" + currentRecipeText);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
     }
 </script>
 
