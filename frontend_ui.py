@@ -18,27 +18,23 @@ HTML_CODE = """
         .header { text-align: center; margin-bottom: 20px; }
         .logo { font-size: 24px; font-weight: bold; color: var(--primary); }
         
-        /* CARDS */
         .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
-        /* INPUTS */
         select, input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         
-        /* CAMERA BUTTON */
+        /* CAMERA / GALLERY BUTTON */
         .camera-box {
             background: #ffe3e3; border: 2px dashed var(--primary); border-radius: 12px;
             padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px;
         }
         .camera-text { color: var(--primary); font-weight: bold; display: block; margin-top: 5px; }
 
-        /* GENERATE BUTTON */
         .btn-generate {
             width: 100%; padding: 15px; background: var(--primary); color: white;
             border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer;
         }
         .btn-generate:active { transform: scale(0.98); }
 
-        /* RESULT SCREEN */
         #screen-result { display: none; }
         .recipe-content { white-space: pre-wrap; line-height: 1.6; color: #444; font-size: 16px; }
         
@@ -48,7 +44,6 @@ HTML_CODE = """
         .btn-whatsapp { background: #25D366; }
         .btn-new { background: #ddd; color: #333; margin-bottom: 10px; width: 100%; }
 
-        /* LOADING */
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -73,13 +68,15 @@ HTML_CODE = """
 
             <label><b>2. Add Ingredients</b></label>
             
-            <!-- Gallery/Camera Input (Removed 'capture' to allow Gallery) -->
+            <!-- 
+               NOTE: Yahan se 'capture' attribute hata diya hai.
+               Ab yeh Gallery aur Camera dono khol sakega.
+            -->
             <input type="file" id="camera-file" accept="image/*" style="display:none" onchange="handleImage()">
             
-            <!-- Visible Box -->
             <div class="camera-box" onclick="document.getElementById('camera-file').click()">
                 <i class="fas fa-camera" style="font-size: 30px; color: #ff6b6b;"></i>
-                <span class="camera-text">Pick from Gallery / Take Photo</span>
+                <span class="camera-text">Upload from Gallery / Camera</span>
             </div>
 
             <input type="text" id="user-input" placeholder="Or type here (e.g. Chicken, Aloo)...">
@@ -107,7 +104,6 @@ HTML_CODE = """
         </div>
     </div>
 
-    <!-- LOADING -->
     <div id="loading">
         <div class="spinner"></div>
         <p style="margin-top:10px; font-weight:bold;">Chef is cooking...</p>
@@ -119,9 +115,12 @@ HTML_CODE = """
     function handleImage() {
         const file = document.getElementById('camera-file').files[0];
         if(file) {
-            // Hum mock kar rahe hain ke image scan hui
-            document.getElementById('user-input').value = "Scanned Item: " + file.name;
-            alert("Image Selected! Click 'Generate Recipe'.");
+            // Image select hone par input box me naam likh denge
+            document.getElementById('user-input').value = "Image Selected: " + file.name;
+            // User ko visual confirmation
+            const camText = document.querySelector('.camera-text');
+            camText.innerText = "✅ Image Selected!";
+            camText.style.color = "green";
         }
     }
 
@@ -130,11 +129,10 @@ HTML_CODE = """
         const lang = document.getElementById('language').value;
 
         if(!input) {
-            alert("Please take a photo or type an ingredient name!");
+            alert("Please select an image or type a name!");
             return;
         }
 
-        // Show Loading
         document.getElementById('loading').style.display = 'flex';
 
         try {
@@ -154,10 +152,8 @@ HTML_CODE = """
                 alert("Error: " + data.error);
             } else {
                 currentRecipe = data.recipe;
-                // Bold formatting
                 document.getElementById('recipe-text').innerHTML = data.recipe.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                 
-                // Show Result
                 document.getElementById('screen-home').style.display = 'none';
                 document.getElementById('screen-result').style.display = 'block';
                 window.scrollTo(0, 0);
