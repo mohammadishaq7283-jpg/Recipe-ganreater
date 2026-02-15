@@ -22,7 +22,7 @@ HTML_CODE = """
         
         select, input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         
-        /* CAMERA / GALLERY BUTTON */
+        /* CAMERA BUTTON STYLE */
         .camera-box {
             background: #ffe3e3; border: 2px dashed var(--primary); border-radius: 12px;
             padding: 20px; text-align: center; cursor: pointer; margin-bottom: 20px;
@@ -69,14 +69,15 @@ HTML_CODE = """
             <label><b>2. Add Ingredients</b></label>
             
             <!-- 
-               NOTE: Yahan se 'capture' attribute hata diya hai.
-               Ab yeh Gallery aur Camera dono khol sakega.
+               FIX: 'capture' hataya gaya hai.
+               Ab mobile poochega: Camera or Files?
             -->
             <input type="file" id="camera-file" accept="image/*" style="display:none" onchange="handleImage()">
             
             <div class="camera-box" onclick="document.getElementById('camera-file').click()">
-                <i class="fas fa-camera" style="font-size: 30px; color: #ff6b6b;"></i>
-                <span class="camera-text">Upload from Gallery / Camera</span>
+                <i class="fas fa-images" style="font-size: 30px; color: #ff6b6b;"></i>
+                <!-- Visual Confirmation Text -->
+                <span class="camera-text">📸 Click for Gallery or Camera</span>
             </div>
 
             <input type="text" id="user-input" placeholder="Or type here (e.g. Chicken, Aloo)...">
@@ -104,6 +105,7 @@ HTML_CODE = """
         </div>
     </div>
 
+    <!-- LOADING -->
     <div id="loading">
         <div class="spinner"></div>
         <p style="margin-top:10px; font-weight:bold;">Chef is cooking...</p>
@@ -115,9 +117,8 @@ HTML_CODE = """
     function handleImage() {
         const file = document.getElementById('camera-file').files[0];
         if(file) {
-            // Image select hone par input box me naam likh denge
+            // Confirm selection
             document.getElementById('user-input').value = "Image Selected: " + file.name;
-            // User ko visual confirmation
             const camText = document.querySelector('.camera-text');
             camText.innerText = "✅ Image Selected!";
             camText.style.color = "green";
