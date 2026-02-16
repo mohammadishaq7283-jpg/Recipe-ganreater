@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify, render_template_string
 from frontend_ui import HTML_CODE
-# Agar recipe_engine import error de to dummy function use karega
+
 try:
     from recipe_engine import generate_recipe
 except ImportError:
-    def generate_recipe(lang, inp, style): return f"Error: Backend file missing."
+    def generate_recipe(lang, inp, style): return "Error: Backend file missing."
 
 app = Flask(__name__)
 
@@ -16,13 +16,17 @@ def home():
 def generate_api():
     try:
         data = request.json
-        # Frontend se data lena
+        
+        # Inputs from Frontend
         user_input = data.get('user_input', '')
         language = data.get('language', 'English')
         style = data.get('style', 'Home Style')
+        # Note: Recipe Length logic prompt me handle hogi
+        # Hum style variable me hi thoda modification bhej denge prompt ke liye
+        full_style = f"{style} ({data.get('type', 'Detailed')} Version)"
         
-        # AI ko call karna
-        recipe_text = generate_recipe(language, user_input, style)
+        # Call AI
+        recipe_text = generate_recipe(language, user_input, full_style)
         
         return jsonify({"recipe": recipe_text})
 
